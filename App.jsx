@@ -1,7 +1,11 @@
 import * as React from 'react';
-import {Profile} from './src/Screens';
+import { NavigationContainer } from '@react-navigation/native';
+import Router from './src/navigation/Router';
+
 export default function App() {
-  return <Profile/>;
+  return (
+    <NavigationContainer>
+      <Router />
+    </NavigationContainer>
+  );
 }
-
-

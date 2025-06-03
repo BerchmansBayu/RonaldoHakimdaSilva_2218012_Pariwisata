@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
-import { Setting2, Heart } from 'iconsax-react-native';
+import { Setting2, Heart, Edit } from 'iconsax-react-native';
+import { useNavigation } from '@react-navigation/native';
 import { profileData } from '../../data';
 import { FavoriteCard } from '../../components';
 import { fontType, colors } from '../../theme';
@@ -16,6 +17,8 @@ const formatNumber = number => {
 };
 
 const Profile = () => {
+  const navigation = useNavigation();
+  
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -74,6 +77,12 @@ const Profile = () => {
           ))}
         </View>
       </ScrollView>
+      
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => navigation.navigate('AddForm')}>
+        <Edit color={colors.white()} variant="Linear" size={20} />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -171,5 +180,21 @@ const styles = StyleSheet.create({
     fontFamily: fontType['Pjs-Bold'],
     color: colors.darkModeNavy(),
     marginLeft: 8,
+  },
+  floatingButton: {
+    backgroundColor: colors.oceanBlue(),
+    padding: 15,
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    borderRadius: 10,
+    shadowColor: colors.oceanBlue(),
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
 });
