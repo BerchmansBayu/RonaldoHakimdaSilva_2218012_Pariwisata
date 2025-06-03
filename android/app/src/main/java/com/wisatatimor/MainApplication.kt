@@ -1,4 +1,4 @@
-package com.pariwisatatimor
+package com.wisatatimor
 
 import android.app.Application
 import com.facebook.react.PackageList
