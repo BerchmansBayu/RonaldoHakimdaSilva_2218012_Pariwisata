@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert } 
 import { ArrowLeft } from 'iconsax-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { fontType, colors } from '../../theme';
-import axios from 'axios';
+import firestore from '@react-native-firebase/firestore';
 
 const AddForm = () => {
   const dataCategory = [
@@ -12,7 +12,6 @@ const AddForm = () => {
     { id: 3, name: 'Alam' }
   ];
 
-  // State sesuai schema gambar
   const [destinationData, setDestinationData] = useState({
     Title: '',
     Category: {},
@@ -47,7 +46,7 @@ const AddForm = () => {
     extrapolate: 'clamp',
   });
 
-  // Submit ke REST API menggunakan axios
+  // Submit ke Firebase Firestore
   const handleUpload = async () => {
     if (
       !destinationData.Title ||
@@ -60,9 +59,7 @@ const AddForm = () => {
     }
 
     try {
-      await axios.post('https://6839347f6561b8d882af5e2b.mockapi.io/api/blog', destinationData, {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      await firestore().collection('destinations').add(destinationData);
       Alert.alert('Success', 'Blog added successfully!');
       setDestinationData({
         Title: '',
@@ -74,7 +71,7 @@ const AddForm = () => {
       });
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.message || error.message);
+      Alert.alert('Error', error.message);
     }
   };
 
@@ -100,7 +97,6 @@ const AddForm = () => {
         contentContainerStyle={{
           paddingHorizontal: 24,
           paddingVertical: 10,
-          gap: 10,
           paddingTop: 62,
           paddingBottom: 80,
         }}
@@ -155,7 +151,7 @@ const AddForm = () => {
                   onPress={() =>
                     handleChange('Category', { id: item.id, name: item.name })
                   }
-                  style={[category.item, { backgroundColor: bgColor }]}>
+                  style={[category.item, { backgroundColor: bgColor, marginRight: 10, marginBottom: 10 }]}>
                   <Text style={[category.name, { color: color }]}>
                     {item.name}
                   </Text>
@@ -295,6 +291,7 @@ const textInput = StyleSheet.create({
     borderRadius: 5,
     padding: 10,
     borderColor: colors.grey(0.4),
+    marginBottom: 10,
   },
   title: {
     fontSize: 16,
@@ -314,7 +311,6 @@ const category = StyleSheet.create({
   container: {
     flexWrap: 'wrap',
     flexDirection: 'row',
-    gap: 10,
     marginTop: 10,
   },
   item: {

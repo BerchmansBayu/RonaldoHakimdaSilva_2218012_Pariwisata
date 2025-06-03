@@ -1,11 +1,11 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Animated, ScrollView, StyleSheet, Text, View, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
+import { Animated, StyleSheet, Text, View, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { Setting2, Heart, Edit } from 'iconsax-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { FavoriteCard } from '../../components';
 import { fontType, colors } from '../../theme';
 import { profileData } from '../../data';
-import axios from 'axios';
+import firestore from '@react-native-firebase/firestore';
 
 // Helper untuk format angka
 const formatNumber = (number) => {
@@ -37,21 +37,18 @@ const Profile = () => {
     extrapolate: 'clamp',
   });
 
-  // Fetch profile & favorite dari API
+  // Fetch profile & favorite dari Firestore
   const fetchProfile = async () => {
     setLoading(true);
     setError(null);
     try {
-      // Contoh penggunaan axios, ganti URL sesuai kebutuhan
-      // Jika API profile tidak ada, bisa pakai profileData dari local
-      // const res = await axios.get('https://your-api-url.com/profile');
-      // setProfile(res.data);
-
+      // Ambil data profile dari local (atau Firestore jika sudah ada)
       setProfile(profileData);
 
-      // Ambil favorite places user dari API
-      const favRes = await axios.get('https://6839347f6561b8d882af5e2b.mockapi.io/api/blog');
-      setFavorites(favRes.data);
+      // Ambil favorite places user dari Firestore
+      const favSnapshot = await firestore().collection('destinations').get();
+      const favList = favSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setFavorites(favList);
     } catch (err) {
       setError('Failed to load data');
     } finally {
@@ -63,18 +60,17 @@ const Profile = () => {
     fetchProfile();
   }, []);
 
-  // Tambahkan useFocusEffect agar data selalu fresh setelah kembali dari EditForm/AddForm
   useFocusEffect(
     useCallback(() => {
       fetchProfile();
     }, [])
   );
 
-  // Hapus favorite
+  // Hapus favorite dari Firestore
   const handleDeleteFavorite = useCallback(async (id) => {
     setFavLoading(true);
     try {
-      await axios.delete(`https://6839347f6561b8d882af5e2b.mockapi.io/api/blog/${id}`);
+      await firestore().collection('destinations').doc(id).delete();
       setFavorites((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
       Alert.alert('Error', 'Failed to delete favorite');
@@ -120,7 +116,6 @@ const Profile = () => {
         scrollEventThrottle={16}
         contentContainerStyle={{
           paddingHorizontal: 24,
-          gap: 10,
           paddingTop: 72,
           paddingBottom: 100,
         }}
@@ -199,8 +194,6 @@ const Profile = () => {
 };
 
 export default Profile;
-
-
 
 const styles = StyleSheet.create({
   container: {

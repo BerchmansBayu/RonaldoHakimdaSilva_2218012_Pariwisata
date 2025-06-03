@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert } 
 import { ArrowLeft } from 'iconsax-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { fontType, colors } from '../../theme';
-import axios from 'axios';
+import firestore from '@react-native-firebase/firestore'; // gunakan firestore RN, bukan db
 
 const EditForm = () => {
   const dataCategory = [
@@ -14,7 +14,7 @@ const EditForm = () => {
 
   const navigation = useNavigation();
   const route = useRoute();
-  const { id } = route.params; // id dari blog yang akan diedit
+  const { id } = route.params; // id dokumen Firestore
 
   // State untuk data yang akan diedit
   const [destinationData, setDestinationData] = useState({
@@ -26,12 +26,16 @@ const EditForm = () => {
     Rating: 0,
   });
 
-  // Ambil data blog berdasarkan id saat komponen mount
+  // Ambil data berdasarkan id saat komponen mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get(`https://6839347f6561b8d882af5e2b.mockapi.io/api/blog/${id}`);
-        setDestinationData(res.data);
+        const docSnap = await firestore().collection('destinations').doc(id).get();
+        if (docSnap.exists) {
+          setDestinationData(docSnap.data());
+        } else {
+          Alert.alert('Error', 'Data not found');
+        }
       } catch (error) {
         Alert.alert('Error', 'Failed to fetch data');
       }
@@ -62,7 +66,7 @@ const EditForm = () => {
     extrapolate: 'clamp',
   });
 
-  // Fungsi update data ke REST API
+  // Fungsi update data ke Firestore
   const handleUpdate = async () => {
     if (
       !destinationData.Title ||
@@ -75,15 +79,11 @@ const EditForm = () => {
     }
 
     try {
-      await axios.put(
-        `https://6839347f6561b8d882af5e2b.mockapi.io/api/blog/${id}`,
-        destinationData,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      await firestore().collection('destinations').doc(id).update(destinationData);
       Alert.alert('Success', 'Blog updated successfully!');
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.message || error.message);
+      Alert.alert('Error', error.message);
     }
   };
 

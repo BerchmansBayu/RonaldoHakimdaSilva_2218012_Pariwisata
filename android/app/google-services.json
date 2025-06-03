@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "570068260597",
+    "project_id": "wisatatimor-23202",
+    "storage_bucket": "wisatatimor-23202.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:570068260597:android:23f53874c66fd36c3f57bc",
+        "android_client_info": {
+          "package_name": "com.wisatatimor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArQgptjolNWaTAlPMmWJcCM2UxEIhhWqg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
