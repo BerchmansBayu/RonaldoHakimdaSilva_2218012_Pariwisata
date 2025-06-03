@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert, Platform, PermissionsAndroid } from 'react-native';
 import { ArrowLeft } from 'iconsax-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { fontType, colors } from '../../theme';
 import firestore from '@react-native-firebase/firestore';
+import notifee, { AndroidImportance } from '@notifee/react-native';
 
 const AddForm = () => {
   const dataCategory = [
@@ -22,6 +23,24 @@ const AddForm = () => {
   });
 
   const navigation = useNavigation();
+
+  // Buat channel notifikasi (Android) - cukup sekali, bisa juga di App.js
+  React.useEffect(() => {
+    async function setupNotification() {
+      if (Platform.OS === 'android') {
+        await notifee.createChannel({
+          id: 'default',
+          name: 'Default Channel',
+          importance: AndroidImportance.HIGH,
+        });
+        // Request permission Android 13+
+        if (Platform.Version >= 33) {
+          await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+        }
+      }
+    }
+    setupNotification();
+  }, []);
 
   const handleChange = (key, value) => {
     setDestinationData({
@@ -60,6 +79,18 @@ const AddForm = () => {
 
     try {
       await firestore().collection('destinations').add(destinationData);
+
+      // Notifikasi lokal setelah upload sukses
+      await notifee.displayNotification({
+        title: 'Upload Success',
+        body: 'Destinasi favorit berhasil ditambahkan!',
+        android: {
+          channelId: 'default',
+          importance: AndroidImportance.HIGH,
+          // smallIcon: 'ic_launcher', // pastikan icon ada di android/app/src/main/res/drawable, atau hapus baris ini jika error
+        },
+      });
+
       Alert.alert('Success', 'Blog added successfully!');
       setDestinationData({
         Title: '',
