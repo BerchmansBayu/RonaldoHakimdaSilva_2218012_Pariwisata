@@ -1,5 +1,5 @@
 import Home from './Home';
 import Profile from './Profile';
 import AddForm from "./AddForm";
-
-export {Home, Profile, AddForm , };
+import Search from './Search';
+export {Home, Profile, AddForm , Search};

@@ -1,12 +1,12 @@
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import React, { useRef } from 'react';
+import {Animated,ScrollView,StyleSheet,Text,View,TouchableOpacity,Image,} from 'react-native';
 import { Setting2, Heart, Edit } from 'iconsax-react-native';
 import { useNavigation } from '@react-navigation/native';
 import { profileData } from '../../data';
 import { FavoriteCard } from '../../components';
 import { fontType, colors } from '../../theme';
 
-const formatNumber = number => {
+const formatNumber = (number) => {
   if (number >= 1000000) {
     return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
   }
@@ -18,21 +18,38 @@ const formatNumber = number => {
 
 const Profile = () => {
   const navigation = useNavigation();
-  
+
+  // Animasi hanya untuk header
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const diffClampY = Animated.diffClamp(scrollY, 0, 60);
+  const headerY = diffClampY.interpolate({
+    inputRange: [0, 60],
+    outputRange: [0, -60],
+    extrapolate: 'clamp',
+  });
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      {/* Header animasi */}
+      <Animated.View style={[styles.header, { transform: [{ translateY: headerY }] }]}>
         <Text style={styles.headerTitle}>My Profile</Text>
         <Setting2 color={colors.white()} variant="Linear" size={24} />
-      </View>
-      
-      <ScrollView
+      </Animated.View>
+
+      <Animated.ScrollView
         showsVerticalScrollIndicator={false}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
         contentContainerStyle={{
           paddingHorizontal: 24,
           gap: 10,
-          paddingVertical: 20,
-        }}>
+          paddingTop: 72,
+          paddingBottom: 100,
+        }}
+      >
         <View style={styles.profileSection}>
           <Image source={{ uri: profileData.profilePict }} style={styles.profilePic} />
           <View style={styles.profileInfo}>
@@ -42,7 +59,7 @@ const Profile = () => {
             </Text>
           </View>
         </View>
-        
+
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{profileData.tripsPlanned}</Text>
@@ -61,26 +78,28 @@ const Profile = () => {
             <Text style={styles.statLabel}>Followers</Text>
           </View>
         </View>
-        
+
         <TouchableOpacity style={styles.editButton}>
           <Text style={styles.editButtonText}>Edit Profile</Text>
         </TouchableOpacity>
-        
+
         <View style={styles.favoritesSection}>
           <View style={styles.sectionHeader}>
             <Heart size={20} color={colors.sunsetOrange()} variant="Bold" />
             <Text style={styles.sectionTitle}>Favorite Places</Text>
           </View>
-          
+
           {profileData.favoritePlaces.map((place, index) => (
             <FavoriteCard key={index} destination={place} />
           ))}
         </View>
-      </ScrollView>
-      
+      </Animated.ScrollView>
+
+      {/* Tombol tetap di bawah kanan */}
       <TouchableOpacity
         style={styles.floatingButton}
-        onPress={() => navigation.navigate('AddForm')}>
+        onPress={() => navigation.navigate('AddForm')}
+      >
         <Edit color={colors.white()} variant="Linear" size={20} />
       </TouchableOpacity>
     </View>
@@ -102,6 +121,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     backgroundColor: colors.oceanBlue(),
     elevation: 8,
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    left: 0,
+    zIndex: 1000,
   },
   headerTitle: {
     fontSize: 20,
@@ -196,5 +220,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 4.65,
     elevation: 8,
+    zIndex: 1000,
   },
 });

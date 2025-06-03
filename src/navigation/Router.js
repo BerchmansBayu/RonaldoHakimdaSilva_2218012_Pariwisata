@@ -1,15 +1,17 @@
 import React from 'react';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Profile, AddForm,  } from '../Screens';
+import { Home, Profile, AddForm, Search  } from '../Screens';
 import { Home2, ProfileCircle } from 'iconsax-react-native';
 import { fontType, colors } from '../theme';
+import { SearchBar } from '../components';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 function MainApp() {
   return (
+    
     <Tab.Navigator
       screenOptions={{
         tabBarHideOnKeyboard: true,
@@ -63,7 +65,7 @@ function MainApp() {
 const Router = () => {
   return (
     <Stack.Navigator>
-      <Stack.Screen
+     <Stack.Screen
         name="MainApp"
         component={MainApp}
         options={{headerShown: false}}
@@ -80,6 +82,16 @@ const Router = () => {
           ...TransitionPresets.SlideFromRightIOS,
         }}
       />
+      <Stack.Screen
+        name="SearchPage"
+        component={Search}
+        options={{
+          headerShown: false, 
+          presentation: 'transparentModal',
+        }}
+      />
+
+
     </Stack.Navigator>
   );
 };
