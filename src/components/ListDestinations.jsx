@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, View, StyleSheet } from 'react-native';
 import DestinationCard from './DestinationCard';
 import { destinations } from '../data';
-import { fontType, colors } from '../theme';
+import { colors } from '../theme';
 
 export default function ListDestinations({ category }) {
   return (
@@ -17,5 +17,7 @@ export default function ListDestinations({ category }) {
 }
 
 const styles = StyleSheet.create({
-  itemVertical: { padding: 16 },
+  itemVertical: { 
+    padding: 16,
+  },
 });

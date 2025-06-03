@@ -1,51 +1,100 @@
-import React from 'react';
-import { View, Text, Image, Pressable, StyleSheet } from 'react-native';
-import { Location, Star } from 'iconsax-react-native';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import { Location, Star, Heart } from 'iconsax-react-native';
 import { fontType, colors } from '../theme';
 
-export default function DestinationCard({ destination }) {
+const DestinationCard = ({ destination }) => {
+  const [isFavorite, setIsFavorite] = useState(destination.isFavorite || false);
+
+  const toggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+  };
+
   return (
-    <View style={styles.cardItem}>
-      <Image style={styles.cardImage} source={{ uri: destination.image }} />
+    <View style={styles.cardContainer}>
+      <Image source={{ uri: destination.image }} style={styles.cardImage} />
+      <TouchableOpacity 
+        style={styles.favoriteButton} 
+        onPress={toggleFavorite}
+      >
+        <Heart
+          size={24}
+          color={isFavorite ? colors.red() : colors.white()}
+          variant={isFavorite ? "Bold" : "Linear"}
+        />
+      </TouchableOpacity>
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{destination.name}</Text>
         <View style={styles.locationContainer}>
-          <Location size={16} color={colors.oceanBlue()} />
+          <Location size={16} color={colors.darkModeNavy(0.7)} variant="Linear" />
           <Text style={styles.locationText}>{destination.location}</Text>
         </View>
         <View style={styles.ratingContainer}>
-          <Star size={16} color={colors.sunsetOrange()} variant="Bold" />
+          <Star size={16} color="#FFD700" variant="Bold" />
           <Text style={styles.ratingText}>{destination.rating}</Text>
         </View>
-        <Pressable style={styles.detailButton}>
-          <Text style={styles.detailText}>Lihat Detail</Text>
-        </Pressable>
       </View>
     </View>
   );
-}
+};
+
+export default DestinationCard;
 
 const styles = StyleSheet.create({
-  cardItem: {
-    flexDirection: 'row',
-    marginBottom: 16,
+  cardContainer: {
     backgroundColor: colors.white(),
-    borderRadius: 10,
+    borderRadius: 12,
+    marginBottom: 16,
+    shadowColor: colors.darkModeNavy(0.3),
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
     overflow: 'hidden',
-    padding: 12,
-    alignItems: 'center',
-    shadowColor: colors.darkModeNavy(),
-    elevation: 5,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.oceanBlue(),
+    position: 'relative',
   },
-  cardImage: { width: 110, height: 110, borderRadius: 12 },
-  cardContent: { padding: 12, flex: 1 },
-  cardTitle: { fontSize: 16, fontWeight: 'bold', color: colors.darkModeNavy(), marginBottom: 6 },
-  locationContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
-  locationText: { fontSize: 14, color: colors.darkModeNavy(0.7), marginLeft: 4 },
-  ratingContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  ratingText: { fontSize: 14, color: colors.darkModeNavy(), marginLeft: 4, fontWeight: '500' },
-  detailButton: { backgroundColor: colors.oceanBlue(), padding: 8, alignItems: 'center', marginTop: 6, borderRadius: 10 },
-  detailText: { color: colors.white(), fontSize: 14, fontWeight: '500' },
+  cardImage: {
+    width: '100%',
+    height: 180,
+    resizeMode: 'cover',
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: colors.darkModeNavy(0.3),
+    borderRadius: 20,
+    padding: 8,
+    zIndex: 1,
+  },
+  cardContent: {
+    padding: 12,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontFamily: fontType['Pjs-Bold'],
+    color: colors.darkModeNavy(),
+    marginBottom: 8,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  locationText: {
+    marginLeft: 6,
+    fontSize: 14,
+    fontFamily: fontType['Pjs-Regular'],
+    color: colors.darkModeNavy(0.7),
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ratingText: {
+    marginLeft: 6,
+    fontSize: 14,
+    fontFamily: fontType['Pjs-Medium'],
+    color: colors.darkModeNavy(),
+  },
 });

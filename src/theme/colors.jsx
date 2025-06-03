@@ -7,6 +7,8 @@ const colors = {
     darkModeNavy: (opacity = 1) => `rgba(25, 25, 112, ${opacity})`, // Warna biru gelap untuk dark mode
     white: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`, // Tetap putih untuk teks atau background
     black: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Hitam tetap ada untuk teks kontras
+    grey: (opacity = 1) => `rgba(128, 128, 128, ${opacity})`,
+    red: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`,
 };
 
 export default colors;
