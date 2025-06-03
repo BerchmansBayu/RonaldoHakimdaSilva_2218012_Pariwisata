@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator, TransitionPresets } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Home, Profile, AddForm, Search  } from '../Screens';
+import { Home, Profile, AddForm, Search, EditForm  } from '../Screens';
 import { Home2, ProfileCircle } from 'iconsax-react-native';
 import { fontType, colors } from '../theme';
 import { SearchBar } from '../components';
@@ -90,6 +90,9 @@ const Router = () => {
           presentation: 'transparentModal',
         }}
       />
+   <Stack.Screen name="EditForm" component={EditForm}  options={{ headerShown: false }}/>
+      
+
 
 
     </Stack.Navigator>

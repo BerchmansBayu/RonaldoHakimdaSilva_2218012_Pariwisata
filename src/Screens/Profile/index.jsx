@@ -1,25 +1,34 @@
-import React, { useRef } from 'react';
-import {Animated,ScrollView,StyleSheet,Text,View,TouchableOpacity,Image,} from 'react-native';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { Animated, ScrollView, StyleSheet, Text, View, TouchableOpacity, Image, ActivityIndicator, Alert } from 'react-native';
 import { Setting2, Heart, Edit } from 'iconsax-react-native';
-import { useNavigation } from '@react-navigation/native';
-import { profileData } from '../../data';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { FavoriteCard } from '../../components';
 import { fontType, colors } from '../../theme';
+import { profileData } from '../../data';
+import axios from 'axios';
 
+// Helper untuk format angka
 const formatNumber = (number) => {
   if (number >= 1000000) {
-    return (number / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    return (number / 1000000).toFixed(1).replace(/.0$/, '') + 'M';
   }
   if (number >= 1000) {
-    return (number / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    return (number / 1000).toFixed(1).replace(/.0$/, '') + 'K';
   }
-  return number.toString();
+  return number?.toString() || '0';
 };
 
 const Profile = () => {
   const navigation = useNavigation();
 
-  // Animasi hanya untuk header
+  // State untuk data profile dan favorite
+  const [profile, setProfile] = useState(null);
+  const [favorites, setFavorites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [favLoading, setFavLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Animasi header
   const scrollY = useRef(new Animated.Value(0)).current;
   const diffClampY = Animated.diffClamp(scrollY, 0, 60);
   const headerY = diffClampY.interpolate({
@@ -27,6 +36,72 @@ const Profile = () => {
     outputRange: [0, -60],
     extrapolate: 'clamp',
   });
+
+  // Fetch profile & favorite dari API
+  const fetchProfile = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Contoh penggunaan axios, ganti URL sesuai kebutuhan
+      // Jika API profile tidak ada, bisa pakai profileData dari local
+      // const res = await axios.get('https://your-api-url.com/profile');
+      // setProfile(res.data);
+
+      setProfile(profileData);
+
+      // Ambil favorite places user dari API
+      const favRes = await axios.get('https://6839347f6561b8d882af5e2b.mockapi.io/api/blog');
+      setFavorites(favRes.data);
+    } catch (err) {
+      setError('Failed to load data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  // Tambahkan useFocusEffect agar data selalu fresh setelah kembali dari EditForm/AddForm
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [])
+  );
+
+  // Hapus favorite
+  const handleDeleteFavorite = useCallback(async (id) => {
+    setFavLoading(true);
+    try {
+      await axios.delete(`https://6839347f6561b8d882af5e2b.mockapi.io/api/blog/${id}`);
+      setFavorites((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      Alert.alert('Error', 'Failed to delete favorite');
+    } finally {
+      setFavLoading(false);
+    }
+  }, []);
+
+  // Loading state
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.oceanBlue()} />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <Text style={{ color: colors.red() }}>{error}</Text>
+        <TouchableOpacity onPress={fetchProfile} style={{ marginTop: 16 }}>
+          <Text style={{ color: colors.oceanBlue() }}>Retry</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -50,30 +125,32 @@ const Profile = () => {
           paddingBottom: 100,
         }}
       >
+        {/* Profile Section */}
         <View style={styles.profileSection}>
-          <Image source={{ uri: profileData.profilePict }} style={styles.profilePic} />
+          <Image source={{ uri: profile?.profilePict }} style={styles.profilePic} />
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{profileData.name}</Text>
+            <Text style={styles.profileName}>{profile?.name}</Text>
             <Text style={styles.memberSince}>
-              Member since {profileData.memberSince}
+              Member since {profile?.memberSince}
             </Text>
           </View>
         </View>
 
+        {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{profileData.tripsPlanned}</Text>
+            <Text style={styles.statNumber}>{profile?.tripsPlanned}</Text>
             <Text style={styles.statLabel}>Trips</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>
-              {formatNumber(profileData.following)}
+              {formatNumber(profile?.following)}
             </Text>
             <Text style={styles.statLabel}>Following</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>
-              {formatNumber(profileData.followers)}
+              {formatNumber(profile?.followers)}
             </Text>
             <Text style={styles.statLabel}>Followers</Text>
           </View>
@@ -83,19 +160,34 @@ const Profile = () => {
           <Text style={styles.editButtonText}>Edit Profile</Text>
         </TouchableOpacity>
 
+        {/* Favorite Places */}
         <View style={styles.favoritesSection}>
           <View style={styles.sectionHeader}>
             <Heart size={20} color={colors.sunsetOrange()} variant="Bold" />
             <Text style={styles.sectionTitle}>Favorite Places</Text>
           </View>
 
-          {profileData.favoritePlaces.map((place, index) => (
-            <FavoriteCard key={index} destination={place} />
-          ))}
+          {favLoading && (
+            <ActivityIndicator size="small" color={colors.oceanBlue()} style={{ marginBottom: 10 }} />
+          )}
+
+          {favorites.length === 0 ? (
+            <Text style={{ color: colors.grey(0.7), textAlign: 'center', marginTop: 10 }}>
+              No favorite places yet.
+            </Text>
+          ) : (
+            favorites.map((place) => (
+              <FavoriteCard
+                key={place.id}
+                destination={place}
+                onDelete={handleDeleteFavorite}
+              />
+            ))
+          )}
         </View>
       </Animated.ScrollView>
 
-      {/* Tombol tetap di bawah kanan */}
+      {/* Tombol tambah favorite */}
       <TouchableOpacity
         style={styles.floatingButton}
         onPress={() => navigation.navigate('AddForm')}
@@ -107,6 +199,8 @@ const Profile = () => {
 };
 
 export default Profile;
+
+
 
 const styles = StyleSheet.create({
   container: {

@@ -1,18 +1,22 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Animated, Alert } from 'react-native';
 import { ArrowLeft } from 'iconsax-react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { fontType, colors } from '../../theme';
 import axios from 'axios';
 
-const AddForm = () => {
+const EditForm = () => {
   const dataCategory = [
     { id: 1, name: 'Pantai' },
     { id: 2, name: 'Budaya' },
     { id: 3, name: 'Alam' }
   ];
 
-  // State sesuai schema gambar
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { id } = route.params; // id dari blog yang akan diedit
+
+  // State untuk data yang akan diedit
   const [destinationData, setDestinationData] = useState({
     Title: '',
     Category: {},
@@ -22,7 +26,18 @@ const AddForm = () => {
     Rating: 0,
   });
 
-  const navigation = useNavigation();
+  // Ambil data blog berdasarkan id saat komponen mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get(`https://6839347f6561b8d882af5e2b.mockapi.io/api/blog/${id}`);
+        setDestinationData(res.data);
+      } catch (error) {
+        Alert.alert('Error', 'Failed to fetch data');
+      }
+    };
+    fetchData();
+  }, [id]);
 
   const handleChange = (key, value) => {
     setDestinationData({
@@ -31,7 +46,7 @@ const AddForm = () => {
     });
   };
 
-  // ANIMATED
+  // ANIMATED (sama seperti AddForm)
   const scrollY = useRef(new Animated.Value(0)).current;
   const diffClampY = Animated.diffClamp(scrollY, 0, 52);
 
@@ -47,8 +62,8 @@ const AddForm = () => {
     extrapolate: 'clamp',
   });
 
-  // Submit ke REST API menggunakan axios
-  const handleUpload = async () => {
+  // Fungsi update data ke REST API
+  const handleUpdate = async () => {
     if (
       !destinationData.Title ||
       !destinationData.Description ||
@@ -60,18 +75,12 @@ const AddForm = () => {
     }
 
     try {
-      await axios.post('https://6839347f6561b8d882af5e2b.mockapi.io/api/blog', destinationData, {
-        headers: { 'Content-Type': 'application/json' }
-      });
-      Alert.alert('Success', 'Blog added successfully!');
-      setDestinationData({
-        Title: '',
-        Category: {},
-        Description: '',
-        Image: '',
-        TotalLikes: 0,
-        Rating: 0,
-      });
+      await axios.put(
+        `https://6839347f6561b8d882af5e2b.mockapi.io/api/blog/${id}`,
+        destinationData,
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      Alert.alert('Success', 'Blog updated successfully!');
       navigation.goBack();
     } catch (error) {
       Alert.alert('Error', error.response?.data?.message || error.message);
@@ -86,7 +95,7 @@ const AddForm = () => {
           <ArrowLeft color={colors.black()} variant="Linear" size={24} />
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={styles.title}>Add New Favorite Destinations</Text>
+          <Text style={styles.title}>Edit Form</Text>
         </View>
       </Animated.View>
 
@@ -168,7 +177,7 @@ const AddForm = () => {
         <View style={textInput.borderDashed}>
           <TextInput
             placeholder="Total Likes"
-            value={destinationData.TotalLikes.toString()}
+            value={destinationData.TotalLikes?.toString() || '0'}
             onChangeText={text => handleChange('TotalLikes', Number(text) || 0)}
             placeholderTextColor={colors.grey(0.6)}
             keyboardType="numeric"
@@ -179,7 +188,7 @@ const AddForm = () => {
         <View style={textInput.borderDashed}>
           <TextInput
             placeholder="Rating"
-            value={destinationData.Rating.toString()}
+            value={destinationData.Rating?.toString() || '0'}
             onChangeText={text => handleChange('Rating', Number(text) || 0)}
             placeholderTextColor={colors.grey(0.6)}
             keyboardType="numeric"
@@ -190,17 +199,17 @@ const AddForm = () => {
 
       {/* Bottom Bar */}
       <Animated.View style={[styles.bottomBar, { transform: [{ translateY: bottomBarY }] }]}>
-        <TouchableOpacity style={styles.button} onPress={handleUpload}>
-          <Text style={styles.buttonLabel}>Upload</Text>
+        <TouchableOpacity style={styles.button} onPress={handleUpdate}>
+          <Text style={styles.buttonLabel}>Update</Text>
         </TouchableOpacity>
       </Animated.View>
     </View>
   );
 };
 
-export default AddForm;
+export default EditForm;
 
-// Styles
+// Styles sama seperti AddForm
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -261,30 +270,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: fontType['Pjs-SemiBold'],
     color: colors.white(),
-  },
-  addButton: {
-    backgroundColor: colors.palmGreen(),
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 10,
-  },
-  addButtonText: {
-    color: colors.white(),
-    fontFamily: fontType['Pjs-Medium'],
-    fontSize: 12,
-  },
-  highlightItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 5,
-    backgroundColor: colors.grey(0.1),
-    padding: 10,
-    borderRadius: 8,
-  },
-  highlightText: {
-    fontFamily: fontType['Pjs-Regular'],
-    fontSize: 12,
-    color: colors.black(),
   },
 });
 
